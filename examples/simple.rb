@@ -3,6 +3,29 @@
 require 'unleash'
 require 'unleash/context'
 
+
+
+class StrategyCompanyId
+  PARAM = 'companyIds'.freeze
+
+  def name
+    'companyId'
+  end
+
+  # need: params['companyIds'], context.properties['companyId'],
+  def is_enabled?(params = {}, context = nil)
+    return false unless params.is_a?(Hash) && params.has_key?(PARAM)
+    return false unless params.fetch(PARAM, nil).is_a? String
+    return false unless context.class.name == 'Unleash::Context'
+
+    # Custom strategy code goes here...
+    company_id_from_context = context&.properties&.values_at('companyId', :companyId).compact.first
+    params[PARAM].split(",").map(&:strip).include?(company_id_from_context)
+  end
+end
+
+klasses = [StrategyCompanyId, nil]
+
 puts ">> START simple.rb"
 
 # Unleash.configure do |config|
@@ -23,7 +46,8 @@ puts ">> START simple.rb"
   refresh_interval: 2,
   metrics_interval: 2,
   retry_limit: 2,
-  log_level: Logger::DEBUG
+  log_level: Logger::DEBUG,
+  custom_strategies: klasses
 )
 
 # feature_name = "AwesomeFeature"

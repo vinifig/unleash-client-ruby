@@ -14,8 +14,9 @@ module Unleash
       self.name       = params.fetch('name', nil)
       self.enabled    = params.fetch('enabled', false)
       self.strategies = params.fetch('strategies', [])
-        .select{ |s| s.has_key?('name') && Unleash::STRATEGIES.has_key?(s['name'].to_sym) }
+        .select{ |s| s.has_key?('name') && Unleash.configuration.strategies.has_key?(s['name'].to_sym) }
         .map{ |s| ActivationStrategy.new(s['name'], s['parameters'] || {}) } || []
+        # .select{ |s| s.has_key?('name') && Unleash::STRATEGIES.has_key?(s['name'].to_sym) }
 
       self.variant_definitions = (params.fetch('variants', []) || [])
         .select{ |v| v.is_a?(Hash) && v.has_key?('name') }
@@ -76,7 +77,8 @@ module Unleash
     end
 
     def strategy_enabled?(strategy, context)
-      r = Unleash::STRATEGIES.fetch(strategy.name.to_sym, :unknown).is_enabled?(strategy.params, context)
+      # r = Unleash::STRATEGIES.fetch(strategy.name.to_sym, :unknown).is_enabled?(strategy.params, context)
+      r = Unleash.configuration.strategies.fetch(strategy.name.to_sym, :unknown).is_enabled?(strategy.params, context)
       Unleash.logger.debug "Strategy #{strategy.name} returned #{r} with context: #{context}" # "for params #{strategy.params} "
       r
     end
